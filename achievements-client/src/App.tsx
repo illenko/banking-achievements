@@ -1,5 +1,5 @@
 import {FC, useEffect, useState} from "react";
-import {Box, Card, CardContent, LinearProgress, Stack, Typography} from "@mui/material";
+import {Box, Card, CardContent, CircularProgress, Stack, Typography} from "@mui/material";
 import CheckCircle from '@mui/icons-material/CheckCircle';
 import axios from "axios";
 
@@ -11,47 +11,51 @@ interface Achievement {
     goal: number;
 }
 
+const fetchAchievements = async () => {
+    try {
+        const {data} = await axios.get(`http://localhost:8080/achievements`);
+        return data;
+    } catch (error) {
+        console.error(error);
+    }
+};
+
+const AchievementCard: FC<Achievement> = ({id, name, description, value, goal}) => (
+    <Card key={id} sx={{width: 300, height: 220}}>
+        <CardContent>
+            <Stack spacing={1}>
+                {value === goal ? (
+                    <CheckCircle color="success" fontSize="large"/>
+                ) : (
+                    <CircularProgress variant="determinate" value={(value / goal) * 100}/>
+                )}
+                <Typography variant="h6">{name}</Typography>
+                <Typography variant="body1">{description}</Typography>
+                <Typography variant="body2"><b>Value:</b> {value}</Typography>
+                <Typography variant="body2"><b>Goal:</b> {goal}</Typography>
+            </Stack>
+        </CardContent>
+    </Card>
+);
+
 const App: FC = () => {
     const [achievements, setAchievements] = useState<Achievement[]>([]);
 
-    const loadAchievements = async () => {
-        try {
-            const {data} = await axios.get(`http://localhost:8080/achievements`);
-            setAchievements(data);
-        } catch (error) {
-            console.error(error);
-        }
-    };
-
     useEffect(() => {
-        loadAchievements().catch(error => console.error(error));
+        fetchAchievements().then(setAchievements);
     }, []);
 
     return (
-        <Box display="flex" justifyContent="center" alignItems="center" flexWrap="wrap" gap={2} height="100vh"
-             width="100vw" bgcolor="lightgrey">
-            <Box position="absolute" top={0} display="flex" alignItems="center">
-                <img src="/golang.png" alt="Logo" style={{height: 200}}/>
-                <Typography variant="h4" component="div" gutterBottom color="text.primary">Your achievements in
-                    GolangBank</Typography>
+        <Box display="flex" flexDirection="column" height="100vh" width="100vw" bgcolor="lightgrey">
+            <Box display="flex" alignItems="center" justifyContent="center" p={1} bgcolor="darkgrey">
+                <img src="/golang.png" alt="Logo" style={{height: 50}}/>
+                <Typography variant="h6" component="div" gutterBottom color="text.primary" ml={2}>
+                    Your achievements in GolangBank
+                </Typography>
             </Box>
-            {achievements.map(({id, name, description, value, goal}) => (
-                <Card key={id} sx={{width: 300, height: 200}}>
-                    <CardContent>
-                        <Stack spacing={1}>
-                            {value === goal ? (
-                                <CheckCircle color="success" fontSize="large"/>
-                            ) : (
-                                <LinearProgress variant="determinate" value={(value / goal) * 100}/>
-                            )}
-                            <Typography variant="h6">{name}</Typography>
-                            <Typography variant="body1">{description}</Typography>
-                            <Typography variant="body2">Value: {value}</Typography>
-                            <Typography variant="body2">Expected: {goal}</Typography>
-                        </Stack>
-                    </CardContent>
-                </Card>
-            ))}
+            <Box display="flex" justifyContent="center" alignItems="center" flexWrap="wrap" gap={2} flexGrow={1}>
+                {achievements.map(achievement => <AchievementCard {...achievement} />)}
+            </Box>
         </Box>
     );
 };

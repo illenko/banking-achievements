@@ -13,7 +13,7 @@ type transaction struct {
 	Datetime time.Time `json:"datetime"`
 	Amount   float64   `json:"amount"`
 	Category string    `json:"category"`
-	Merchant string    `json:"merchant"`
+	Country  string    `json:"country"`
 }
 
 func main() {
