@@ -3,6 +3,8 @@ package main
 import (
 	"github.com/google/uuid"
 	"gofr.dev/pkg/gofr"
+	"gofr.dev/pkg/gofr/http/response"
+	"math/rand"
 	"time"
 )
 
@@ -108,11 +110,11 @@ type achievementUniqueValues struct {
 }
 
 type achievement struct {
-	ID            uuid.UUID `json:"id"`
-	Name          string    `json:"name"`
-	Description   string    `json:"description"`
-	CriteriaValue int       `json:"criteriaValue"`
-	ActualValue   int       `json:"actualValue"`
+	ID          uuid.UUID `json:"id"`
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+	Value       int       `json:"value"`
+	Goal        int       `json:"goal"`
 }
 
 type transaction struct {
@@ -139,6 +141,22 @@ func main() {
 		c.Logger.Info("Consumed transaction", data)
 
 		return nil
+	})
+
+	app.GET("/achievements", func(ctx *gofr.Context) (interface{}, error) {
+		var achievements []achievement
+
+		for _, setting := range achievementSettings {
+			achievements = append(achievements, achievement{
+				ID:          setting.Id,
+				Name:        setting.Name,
+				Description: setting.Description,
+				Value:       rand.Intn(setting.Criteria.Value),
+				Goal:        setting.Criteria.Value,
+			})
+		}
+
+		return response.Raw{Data: achievements}, nil
 	})
 
 	app.Run()
