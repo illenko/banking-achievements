@@ -127,76 +127,69 @@ func main() {
 	app.Migrate(migrations.All())
 
 	app.Subscribe("transactions", func(c *gofr.Context) error {
-
 		var data transaction
-
 		err := c.Bind(&data)
 		if err != nil {
 			c.Logger.Error("Error unmarshalling transaction: ", err)
 			return nil
 		}
-
 		c.Logger.Info("Consumed transaction", data)
-
 		return processTransaction(c, data)
 	})
 
-	app.GET("/achievements", func(ctx *gofr.Context) (interface{}, error) {
-		var achievements []achievement
-
-		rows, err := ctx.SQL.QueryContext(ctx, "SELECT id, value, values FROM achievement_entity")
-		if err != nil {
-			return nil, err
-		}
-		defer rows.Close()
-
-		achievementEntities := make(map[uuid.UUID]achievementEntity)
-		for rows.Next() {
-			var a achievementEntity
-			var values []string
-			err := rows.Scan(&a.ID, &a.Value, pq.Array(&values))
-			if err != nil {
-				return nil, err
-			}
-			a.Values = values
-			achievementEntities[a.ID] = a
-		}
-
-		for _, setting := range achievementSettings {
-			a, ok := achievementEntities[setting.Id]
-			if !ok {
-				a = achievementEntity{
-					ID:     setting.Id,
-					Value:  0,
-					Values: []string{},
-				}
-			}
-
-			achievements = append(achievements, achievement{
-				ID:          setting.Id,
-				Name:        setting.Name,
-				Description: setting.Description,
-				Value:       int(a.Value),
-				Goal:        setting.Criteria.Value,
-			})
-		}
-
-		return response.Raw{Data: achievements}, nil
-	})
+	app.GET("/achievements", fetchAchievements)
 
 	app.Run()
 }
 
-func processTransaction(c *gofr.Context, t transaction) error {
-
-	settings := filterAchievements(t, achievementSettings)
-
-	rows, err := c.SQL.QueryContext(c, "SELECT id, value, values FROM achievement_entity")
-
+func fetchAchievements(ctx *gofr.Context) (interface{}, error) {
+	var achievements []achievement
+	rows, err := ctx.SQL.Query("SELECT id, value, values FROM achievement_entity")
 	if err != nil {
-		return err
+		return nil, fmt.Errorf("error querying achievement entities: %w", err)
+	}
+	defer rows.Close()
+
+	achievementEntities := make(map[uuid.UUID]achievementEntity)
+	for rows.Next() {
+		var a achievementEntity
+		var values []string
+		err := rows.Scan(&a.ID, &a.Value, pq.Array(&values))
+		if err != nil {
+			return nil, fmt.Errorf("error scanning row: %w", err)
+		}
+		a.Values = values
+		achievementEntities[a.ID] = a
 	}
 
+	for _, setting := range achievementSettings {
+		a, ok := achievementEntities[setting.Id]
+		if !ok {
+			a = achievementEntity{
+				ID:     setting.Id,
+				Value:  0,
+				Values: []string{},
+			}
+		}
+
+		achievements = append(achievements, achievement{
+			ID:          setting.Id,
+			Name:        setting.Name,
+			Description: setting.Description,
+			Value:       int(a.Value),
+			Goal:        setting.Criteria.Value,
+		})
+	}
+
+	return response.Raw{Data: achievements}, nil
+}
+
+func processTransaction(c *gofr.Context, t transaction) error {
+	settings := filterAchievements(t, achievementSettings)
+	rows, err := c.SQL.Query("SELECT id, value, values FROM achievement_entity")
+	if err != nil {
+		return fmt.Errorf("error querying achievement entities: %w", err)
+	}
 	defer rows.Close()
 
 	achievements := make(map[uuid.UUID]achievementEntity)
@@ -205,15 +198,17 @@ func processTransaction(c *gofr.Context, t transaction) error {
 		var values []string
 		err := rows.Scan(&a.ID, &a.Value, pq.Array(&values))
 		if err != nil {
-			return err
+			return fmt.Errorf("error scanning row: %w", err)
 		}
 		a.Values = values
 		achievements[a.ID] = a
 	}
 
 	for _, setting := range settings {
-		processAchievement(c, t, setting, achievements)
-
+		err := processAchievement(c, t, setting, achievements)
+		if err != nil {
+			return fmt.Errorf("error processing achievement: %w", err)
+		}
 	}
 
 	return nil
@@ -222,11 +217,7 @@ func processTransaction(c *gofr.Context, t transaction) error {
 func processAchievement(c *gofr.Context, t transaction, s achievementSetting, achievements map[uuid.UUID]achievementEntity) error {
 	a, ok := achievements[s.Id]
 	if !ok {
-		a = achievementEntity{
-			ID:     s.Id,
-			Value:  0,
-			Values: []string{},
-		}
+		a = newAchievementEntity(s.Id)
 	}
 
 	switch s.Criteria.Type {
@@ -237,8 +228,7 @@ func processAchievement(c *gofr.Context, t transaction, s achievementSetting, ac
 	case Unique:
 		value, err := getValue(s.Criteria, t)
 		if err != nil {
-			return err
-
+			return fmt.Errorf("error getting value: %w", err)
 		}
 		if !slices.Contains(a.Values, value) {
 			a.Values = append(a.Values, value)
@@ -247,17 +237,41 @@ func processAchievement(c *gofr.Context, t transaction, s achievementSetting, ac
 	}
 
 	if ok {
-		_, err := c.SQL.ExecContext(c, "UPDATE achievement_entity SET value = $1, values = $2 WHERE id = $3", a.Value, pq.Array(a.Values), a.ID)
+		err := updateAchievementEntity(c, a)
 		if err != nil {
-			return err
+			return fmt.Errorf("error updating achievement entity: %w", err)
 		}
 	} else {
-		_, err := c.SQL.ExecContext(c, "INSERT INTO achievement_entity (id, value, values) VALUES ($1, $3, $4)", a.ID, a.Value, pq.Array(a.Values))
+		err := createAchievementEntity(c, a)
 		if err != nil {
-			return err
+			return fmt.Errorf("error creating achievement entity: %w", err)
 		}
 	}
 
+	return nil
+}
+
+func newAchievementEntity(id uuid.UUID) achievementEntity {
+	return achievementEntity{
+		ID:     id,
+		Value:  0,
+		Values: []string{},
+	}
+}
+
+func createAchievementEntity(c *gofr.Context, a achievementEntity) error {
+	_, err := c.SQL.Exec("INSERT INTO achievement_entity (id, value, values) VALUES ($1, $2, $3)", a.ID, a.Value, pq.Array(a.Values))
+	if err != nil {
+		return fmt.Errorf("error executing insert: %w", err)
+	}
+	return nil
+}
+
+func updateAchievementEntity(c *gofr.Context, a achievementEntity) error {
+	_, err := c.SQL.Exec("UPDATE achievement_entity SET value = $1, values = $2 WHERE id = $3", a.Value, pq.Array(a.Values), a.ID)
+	if err != nil {
+		return fmt.Errorf("error executing update: %w", err)
+	}
 	return nil
 }
 
