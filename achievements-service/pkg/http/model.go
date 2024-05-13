@@ -1,10 +1,8 @@
-package main
+package http
 
-import (
-	"github.com/google/uuid"
-)
+import "github.com/google/uuid"
 
-type achievement struct {
+type Achievement struct {
 	ID          uuid.UUID `json:"id"`
 	Name        string    `json:"name"`
 	Description string    `json:"description"`
