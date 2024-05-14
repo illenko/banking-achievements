@@ -1,4 +1,4 @@
-package settings
+package model
 
 import "github.com/google/uuid"
 
@@ -17,7 +17,7 @@ const (
 	Count
 )
 
-type Setting struct {
+type Rule struct {
 	Id          uuid.UUID
 	Name        string
 	Description string

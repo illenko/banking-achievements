@@ -21,21 +21,23 @@ func main() {
 
 	app.POST("/transactions", func(ctx *gofr.Context) (interface{}, error) {
 
-		var data transaction
+		var data []transaction
 
 		err := ctx.Bind(&data)
 		if err != nil {
 			return nil, err
 		}
 
-		msg, err := json.Marshal(data)
-		if err != nil {
-			return nil, err
-		}
+		for _, t := range data {
+			msg, err := json.Marshal(t)
+			if err != nil {
+				return nil, err
+			}
 
-		err = ctx.GetPublisher().Publish(ctx, "transactions", msg)
-		if err != nil {
-			return nil, err
+			err = ctx.GetPublisher().Publish(ctx, "transactions", msg)
+			if err != nil {
+				return nil, err
+			}
 		}
 
 		return "Published", nil

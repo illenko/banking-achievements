@@ -27,19 +27,16 @@ const AchievementCard: FC<Achievement> = ({id, name, description, value, goal, r
         <CardContent>
             <Stack spacing={1}>
                 {value >= goal ? (
-                    <CheckCircle color="success" fontSize="large"/>
+                    <CheckCircle color="success" fontSize="large" />
                 ) : (
                     <CircularProgress variant="determinate" value={(value / goal) * 100}/>
                 )}
                 <Typography variant="h6">{name}</Typography>
-                {repeatable && (
-                    <Typography variant="caption">this achievement is repeatable</Typography>
-                )}
                 <Typography variant="body1">{description}</Typography>
                 <Typography variant="body2"><b>Value:</b> {value}</Typography>
                 <Typography variant="body2"><b>Goal:</b> {goal}</Typography>
-                {repeatable && count > 0 && (
-                    <Typography variant="body2" color="success">👍You did it {count} times</Typography>
+                {repeatable && (
+                    <Typography variant="caption">🔄 Repeatable {repeatable && count > 0 && " | 👍You did it " + count + " times"}</Typography>
                 )}
             </Stack>
         </CardContent>

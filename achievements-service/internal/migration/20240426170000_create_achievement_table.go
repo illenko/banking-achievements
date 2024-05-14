@@ -6,7 +6,7 @@ const createTable = `CREATE TABLE achievement (
     id UUID PRIMARY KEY,
     setting_id UUID NOT NULL,
     value FLOAT NOT NULL,
-    values TEXT[] NOT NULL
+    values_holder TEXT[] NOT NULL
 );`
 
 func createAchievementTable() migration.Migrate {
