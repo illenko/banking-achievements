@@ -18,7 +18,7 @@ const (
 )
 
 type Rule struct {
-	Id          uuid.UUID
+	ID          uuid.UUID
 	Name        string
 	Description string
 	Filter      Filter

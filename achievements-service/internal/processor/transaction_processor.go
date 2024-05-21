@@ -2,11 +2,12 @@ package processor
 
 import (
 	"fmt"
+	"slices"
+
 	"github.com/google/uuid"
 	"github.com/illenko/achievements-service/internal/model"
 	"github.com/illenko/achievements-service/internal/service"
 	"gofr.dev/pkg/gofr"
-	"slices"
 )
 
 type TransactionProcessor interface {
@@ -15,13 +16,13 @@ type TransactionProcessor interface {
 
 type transactionProcessor struct {
 	achievementService service.AchievementService
-	settingsService    service.RuleService
+	rulesService       service.RuleService
 }
 
-func NewTransactionProcessor(achievementService service.AchievementService, settingsService service.RuleService) TransactionProcessor {
+func NewTransactionProcessor(achievementService service.AchievementService, rulesService service.RuleService) TransactionProcessor {
 	return &transactionProcessor{
 		achievementService: achievementService,
-		settingsService:    settingsService,
+		rulesService:       rulesService,
 	}
 }
 
@@ -34,7 +35,7 @@ func (p *transactionProcessor) Process(c *gofr.Context) error {
 	}
 	c.Logger.Info("Consumed transaction", t)
 
-	achievementSettings, err := p.settingsService.GetAll()
+	achievementrules, err := p.rulesService.GetAll()
 
 	if err != nil {
 		return err
@@ -45,22 +46,22 @@ func (p *transactionProcessor) Process(c *gofr.Context) error {
 		return err
 	}
 
-	return p.processAchievements(c, t, filterAchievements(t, achievementSettings), achievements)
+	return p.processAchievements(c, t, filterAchievements(t, achievementrules), achievements)
 }
 
-func (p *transactionProcessor) processAchievements(c *gofr.Context, t model.Transaction, settings []model.Rule, achievements []model.Achievement) error {
+func (p *transactionProcessor) processAchievements(c *gofr.Context, t model.Transaction, rules []model.Rule, achievements []model.Achievement) error {
 	achievementMap := make(map[uuid.UUID]model.Achievement)
 	for _, a := range achievements {
-		achievementMap[a.SettingID] = a
+		achievementMap[a.RuleID] = a
 	}
 
-	for _, setting := range settings {
-		a, ok := achievementMap[setting.Id]
+	for _, rule := range rules {
+		a, ok := achievementMap[rule.ID]
 		if !ok {
-			a = newAchievement(setting.Id)
+			a = newAchievement(rule.ID)
 		}
 
-		err := p.processAchievement(c, t, setting, a, ok)
+		err := p.processAchievement(c, t, rule, a, ok)
 		if err != nil {
 			return fmt.Errorf("error processing achievement: %w", err)
 		}
@@ -69,10 +70,10 @@ func (p *transactionProcessor) processAchievements(c *gofr.Context, t model.Tran
 	return nil
 }
 
-func newAchievement(settingId uuid.UUID) model.Achievement {
+func newAchievement(ruleId uuid.UUID) model.Achievement {
 	return model.Achievement{
 		ID:           uuid.New(),
-		SettingID:    settingId,
+		RuleID:       ruleId,
 		Value:        0,
 		ValuesHolder: []string{},
 	}
@@ -123,9 +124,9 @@ func getValue(criteria model.Criteria, t model.Transaction) (string, error) {
 func filterAchievements(t model.Transaction, s []model.Rule) []model.Rule {
 	var filteredAchievements []model.Rule
 
-	for _, setting := range s {
-		if meetsCriteria(t, setting.Filter) {
-			filteredAchievements = append(filteredAchievements, setting)
+	for _, rule := range s {
+		if meetsCriteria(t, rule.Filter) {
+			filteredAchievements = append(filteredAchievements, rule)
 		}
 	}
 

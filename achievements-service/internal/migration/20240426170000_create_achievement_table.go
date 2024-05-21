@@ -4,7 +4,7 @@ import "gofr.dev/pkg/gofr/migration"
 
 const createTable = `CREATE TABLE achievement (
     id UUID PRIMARY KEY,
-    setting_id UUID NOT NULL,
+    rule_id UUID NOT NULL,
     value FLOAT NOT NULL,
     values_holder TEXT[] NOT NULL
 );`

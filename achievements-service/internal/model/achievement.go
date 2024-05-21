@@ -4,7 +4,7 @@ import "github.com/google/uuid"
 
 type Achievement struct {
 	ID           uuid.UUID
-	SettingID    uuid.UUID
+	RuleID       uuid.UUID
 	Value        float64
 	ValuesHolder []string
 }

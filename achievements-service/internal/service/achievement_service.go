@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+
 	"github.com/illenko/achievements-service/internal/mapper"
 	"github.com/illenko/achievements-service/internal/model"
 	"github.com/illenko/achievements-service/internal/repository"
@@ -17,16 +18,16 @@ type AchievementService interface {
 }
 
 type achievementService struct {
-	repo         repository.AchievementRepository
-	settingsRepo repository.RuleRepository
-	mapper       mapper.AchievementMapper
+	repo        repository.AchievementRepository
+	ruleService RuleService
+	mapper      mapper.AchievementMapper
 }
 
-func NewAchievementService(repo repository.AchievementRepository, settingsRepo repository.RuleRepository, mapper mapper.AchievementMapper) AchievementService {
+func NewAchievementService(repo repository.AchievementRepository, ruleService RuleService, mapper mapper.AchievementMapper) AchievementService {
 	return &achievementService{
-		repo:         repo,
-		settingsRepo: settingsRepo,
-		mapper:       mapper,
+		repo:        repo,
+		ruleService: ruleService,
+		mapper:      mapper,
 	}
 }
 
@@ -40,12 +41,12 @@ func (s *achievementService) GetResponse(c *gofr.Context) ([]http.Achievement, e
 		return nil, err
 	}
 
-	allSettings, err := s.settingsRepo.GetAll()
+	allrules, err := s.ruleService.GetAll()
 	if err != nil {
 		return nil, err
 	}
 
-	return s.mapper.ToResponse(achievements, allSettings)
+	return s.mapper.ToResponse(achievements, allrules)
 }
 
 func (s *achievementService) InsertAchievement(c *gofr.Context, a model.Achievement) error {

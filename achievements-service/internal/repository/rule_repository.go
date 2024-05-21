@@ -7,7 +7,7 @@ import (
 
 var rules = []model.Rule{
 	{
-		Id:          uuid.MustParse("9579af22-bb86-4e8c-8076-218d1a61b70e"),
+		ID:          uuid.MustParse("9579af22-bb86-4e8c-8076-218d1a61b70e"),
 		Name:        "🤑 Big Spender",
 		Description: "Made 3 transactions with amount more than $100",
 		Filter: model.Filter{
@@ -19,7 +19,7 @@ var rules = []model.Rule{
 		},
 	},
 	{
-		Id:          uuid.MustParse("ec42bee0-7d36-48de-bf6f-eb9bfd7d4a6e"),
+		ID:          uuid.MustParse("ec42bee0-7d36-48de-bf6f-eb9bfd7d4a6e"),
 		Name:        "☕ Coffee Addict",
 		Description: "Spent more than $50 on coffee",
 		Filter: model.Filter{
@@ -34,7 +34,7 @@ var rules = []model.Rule{
 		Repeatable: true,
 	},
 	{
-		Id:          uuid.MustParse("0c04db79-397a-44aa-b309-d0a7a368424d"),
+		ID:          uuid.MustParse("0c04db79-397a-44aa-b309-d0a7a368424d"),
 		Name:        "🧳 Traveller",
 		Description: "Made transactions in 5 different countries",
 		Filter: model.Filter{
@@ -47,7 +47,7 @@ var rules = []model.Rule{
 		},
 	},
 	{
-		Id:          uuid.MustParse("a04a3397-075c-496b-a636-04f668116a0f"),
+		ID:          uuid.MustParse("a04a3397-075c-496b-a636-04f668116a0f"),
 		Name:        "🚕 Taxi Lover",
 		Description: "Made 5 transactions with taxi category",
 		Filter: model.Filter{

@@ -52,7 +52,7 @@ const App: FC = () => {
 
     return (
         <Box display="flex" flexDirection="column" height="100vh" width="100vw" bgcolor="lightgrey">
-            <Box display="flex" alignItems="center" justifyContent="center" p={1} bgcolor="darkgrey">
+            <Box display="flex" alignItems="center" justifyContent="center" bgcolor="darkgrey">
                 <img src="/golang.png" alt="Logo" style={{height: 50}}/>
                 <Typography variant="h6" component="div" gutterBottom color="text.primary" ml={2}>
                     Your achievements in GolangBank

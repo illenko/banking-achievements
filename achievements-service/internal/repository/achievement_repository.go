@@ -20,7 +20,7 @@ func NewAchievementRepository() AchievementRepository {
 }
 
 func (r *achievementRepository) GetAll(c *gofr.Context) ([]model.Achievement, error) {
-	rows, err := c.SQL.Query("SELECT id, setting_id, value, values_holder FROM achievement")
+	rows, err := c.SQL.Query("SELECT id, rule_id, value, values_holder FROM achievement")
 	if err != nil {
 		return nil, err
 	}
@@ -29,7 +29,7 @@ func (r *achievementRepository) GetAll(c *gofr.Context) ([]model.Achievement, er
 	var achievements []model.Achievement
 	for rows.Next() {
 		var a model.Achievement
-		err := rows.Scan(&a.ID, &a.SettingID, &a.Value, pq.Array(&a.ValuesHolder))
+		err := rows.Scan(&a.ID, &a.RuleID, &a.Value, pq.Array(&a.ValuesHolder))
 		if err != nil {
 			return nil, err
 		}
@@ -40,7 +40,7 @@ func (r *achievementRepository) GetAll(c *gofr.Context) ([]model.Achievement, er
 }
 
 func (r *achievementRepository) Insert(c *gofr.Context, a model.Achievement) error {
-	_, err := c.SQL.Exec("INSERT INTO achievement (id, setting_id, value, values_holder) VALUES ($1, $2, $3, $4)", a.ID, a.SettingID, a.Value, pq.Array(a.ValuesHolder))
+	_, err := c.SQL.Exec("INSERT INTO achievement (id, rule_id, value, values_holder) VALUES ($1, $2, $3, $4)", a.ID, a.RuleID, a.Value, pq.Array(a.ValuesHolder))
 	if err != nil {
 		return err
 	}
@@ -49,7 +49,7 @@ func (r *achievementRepository) Insert(c *gofr.Context, a model.Achievement) err
 }
 
 func (r *achievementRepository) Update(c *gofr.Context, a model.Achievement) error {
-	_, err := c.SQL.Exec("UPDATE achievement SET setting_id = $1, value = $2, values_holder = $3 WHERE id = $4", a.SettingID, a.Value, pq.Array(a.ValuesHolder), a.ID)
+	_, err := c.SQL.Exec("UPDATE achievement SET rule_id = $1, value = $2, values_holder = $3 WHERE id = $4", a.RuleID, a.Value, pq.Array(a.ValuesHolder), a.ID)
 	if err != nil {
 		return err
 	}
