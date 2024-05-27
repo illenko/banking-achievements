@@ -29,10 +29,10 @@ func (m *achievementMapper) toAchievementMap(achievements []model.Achievement) m
 	return achievementMap
 }
 
-func (m *achievementMapper) toAchievementsResponse(rules []model.Rule, achievementMap map[uuid.UUID]model.Achievement) []http.Achievement {
+func (m *achievementMapper) toAchievementsResponse(rules []model.Rule, achievements map[uuid.UUID]model.Achievement) []http.Achievement {
 	var responseAchievements []http.Achievement
 	for _, r := range rules {
-		achievement, ok := achievementMap[r.ID]
+		achievement, ok := achievements[r.ID]
 		if !ok {
 			achievement = model.Achievement{
 				ID:           uuid.New(),

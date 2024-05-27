@@ -13,8 +13,8 @@ import (
 type AchievementService interface {
 	GetAll(c *gofr.Context) ([]model.Achievement, error)
 	GetResponse(c *gofr.Context) ([]http.Achievement, error)
-	InsertAchievement(c *gofr.Context, a model.Achievement) error
-	UpdateAchievement(c *gofr.Context, a model.Achievement) error
+	InsertAchievement(c *gofr.Context, achievement model.Achievement) error
+	UpdateAchievement(c *gofr.Context, achievement model.Achievement) error
 }
 
 type achievementService struct {
@@ -41,24 +41,24 @@ func (s *achievementService) GetResponse(c *gofr.Context) ([]http.Achievement, e
 		return nil, err
 	}
 
-	allrules, err := s.ruleService.GetAll()
+	rules, err := s.ruleService.GetAll()
 	if err != nil {
 		return nil, err
 	}
 
-	return s.mapper.ToResponse(achievements, allrules)
+	return s.mapper.ToResponse(achievements, rules)
 }
 
-func (s *achievementService) InsertAchievement(c *gofr.Context, a model.Achievement) error {
-	err := s.repo.Insert(c, a)
+func (s *achievementService) InsertAchievement(c *gofr.Context, achievement model.Achievement) error {
+	err := s.repo.Insert(c, achievement)
 	if err != nil {
 		return fmt.Errorf("inserting achievement: %w", err)
 	}
 	return nil
 }
 
-func (s *achievementService) UpdateAchievement(c *gofr.Context, a model.Achievement) error {
-	err := s.repo.Update(c, a)
+func (s *achievementService) UpdateAchievement(c *gofr.Context, achievement model.Achievement) error {
+	err := s.repo.Update(c, achievement)
 	if err != nil {
 		return fmt.Errorf("updating achievement: %w", err)
 	}
