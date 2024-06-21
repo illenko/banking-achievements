@@ -1,6 +1,9 @@
 package model
 
-import "github.com/google/uuid"
+import (
+	"github.com/google/uuid"
+	"github.com/illenko/achievements-service/internal/operation"
+)
 
 type Field int
 type Type int
@@ -21,18 +24,19 @@ type Rule struct {
 	ID          uuid.UUID
 	Name        string
 	Description string
-	Filter      Filter
+	Filters     []Filter
 	Criteria    Criteria
 	Repeatable  bool
 }
 
 type Filter struct {
-	Categories *[]string
-	Amount     float64
+	Field     string
+	Operation string
+	Value     string
 }
 
 type Criteria struct {
-	Field Field
-	Type  Type
-	Value int
+	Field     string
+	Operation operation.Operation
+	Value     int
 }

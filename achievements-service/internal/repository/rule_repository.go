@@ -3,6 +3,7 @@ package repository
 import (
 	"github.com/google/uuid"
 	"github.com/illenko/achievements-service/internal/model"
+	"github.com/illenko/achievements-service/internal/operation"
 )
 
 var rules = []model.Rule{
@@ -10,26 +11,33 @@ var rules = []model.Rule{
 		ID:          uuid.MustParse("9579af22-bb86-4e8c-8076-218d1a61b70e"),
 		Name:        "🤑 Big Spender",
 		Description: "Made 3 transactions with amount more than $100",
-		Filter: model.Filter{
-			Amount: 100,
+		Filters: []model.Filter{
+			{
+				Field:     "amount",
+				Operation: ">",
+				Value:     "100",
+			},
 		},
 		Criteria: model.Criteria{
-			Type:  model.Count,
-			Value: 3,
+			Operation: operation.Count,
+			Value:     3,
 		},
 	},
 	{
 		ID:          uuid.MustParse("ec42bee0-7d36-48de-bf6f-eb9bfd7d4a6e"),
 		Name:        "☕ Coffee Addict",
 		Description: "Spent more than $50 on coffee",
-		Filter: model.Filter{
-			Categories: &[]string{"coffee"},
-			Amount:     50,
+		Filters: []model.Filter{
+			{
+				Field:     "category",
+				Operation: "=",
+				Value:     "coffee",
+			},
 		},
 		Criteria: model.Criteria{
-			Field: model.Amount,
-			Type:  model.Sum,
-			Value: 50,
+			Field:     "amount",
+			Operation: operation.Sum,
+			Value:     50,
 		},
 		Repeatable: true,
 	},
@@ -37,27 +45,27 @@ var rules = []model.Rule{
 		ID:          uuid.MustParse("0c04db79-397a-44aa-b309-d0a7a368424d"),
 		Name:        "🧳 Traveller",
 		Description: "Made transactions in 5 different countries",
-		Filter: model.Filter{
-			Amount: 0,
-		},
 		Criteria: model.Criteria{
-			Field: model.Country,
-			Type:  model.Unique,
-			Value: 5,
+			Field:     "country",
+			Operation: operation.Unique,
+			Value:     5,
 		},
 	},
 	{
-		ID:          uuid.MustParse("a04a3397-075c-496b-a636-04f668116a0f"),
-		Name:        "🚕 Taxi Lover",
-		Description: "Made 5 transactions with taxi category",
-		Filter: model.Filter{
-			Categories: &[]string{"taxi"},
+		ID:          uuid.MustParse("f4b3b3b4-4b3b-4b3b-4b3b-4b3b4b3b4b3b"),
+		Name:        "🍔 Foodie",
+		Description: "Made 10 transactions with food",
+		Filters: []model.Filter{
+			{
+				Field:     "category",
+				Operation: "in",
+				Value:     "food,restaurant",
+			},
 		},
 		Criteria: model.Criteria{
-			Type:  model.Count,
-			Value: 5,
+			Operation: operation.Count,
+			Value:     10,
 		},
-		Repeatable: true,
 	},
 }
 

@@ -8,6 +8,10 @@ require (
 	gofr.dev v1.7.0
 )
 
+replace (
+	gofr.dev v1.7.0 => ../../gofr
+)
+
 require (
 	cloud.google.com/go v0.113.0 // indirect
 	cloud.google.com/go/auth v0.4.1 // indirect
